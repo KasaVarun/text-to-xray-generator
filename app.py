@@ -5,6 +5,10 @@ import pandas as pd
 import numpy as np
 from PIL import Image
 import gdown
+import os
+
+# Set Hugging Face token as an environment variable
+os.environ["HUGGINGFACE_TOKEN"] = "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"
 
 st.set_page_config(page_title="Text-to-X-ray Generator", layout="wide")
 
@@ -15,7 +19,8 @@ gdown.download("https://mega.nz/file/J8hSxKKS#loXn1X-GcUhr5NSsgTTe5m7SrSw9Q9LbZV
 pipe = StableDiffusionPipeline.from_pretrained(
     "stabilityai/stable-diffusion-2-1",
     torch_dtype=torch.float32,
-    use_safetensors=True
+    use_safetensors=True,
+    use_auth_token=os.environ["HUGGINGFACE_TOKEN"]
 )
 pipe.safety_checker = None
 st.write("Model loaded on CPU")
