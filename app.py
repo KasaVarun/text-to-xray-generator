@@ -1,14 +1,8 @@
 import streamlit as st
-from diffusers import StableDiffusionPipeline
-import torch
 import pandas as pd
 import numpy as np
 from PIL import Image
 import gdown
-import os
-
-# Set Hugging Face token as an environment variable
-os.environ["HUGGINGFACE_TOKEN"] = "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"
 
 st.set_page_config(page_title="Text-to-X-ray Generator", layout="wide")
 
@@ -17,20 +11,6 @@ try:
     gdown.download("https://mega.nz/file/J8hSxKKS#loXn1X-GcUhr5NSsgTTe5m7SrSw9Q9LbZV6KRX9U8W0", "preprocessed_data.pkl", quiet=False)
 except Exception as e:
     st.error(f"Failed to download dataset: {e}")
-    st.stop()
-
-# Load model on CPU (use base Stable Diffusion model)
-try:
-    pipe = StableDiffusionPipeline.from_pretrained(
-        "stabilityai/stable-diffusion-2-1",
-        torch_dtype=torch.float32,
-        use_safetensors=True,
-        use_auth_token=os.environ["HUGGINGFACE_TOKEN"]
-    )
-    pipe.safety_checker = None
-    st.write("Model loaded on CPU")
-except Exception as e:
-    st.error(f"Failed to load model: {e}")
     st.stop()
 
 # Load dataset
@@ -64,15 +44,7 @@ with col1:
         st.write("No matching real image available.")
 with col2:
     st.subheader("Generated X-ray")
-    if st.button("Generate", key="generate"):
-        with st.spinner("Generating..."):
-            try:
-                image = pipe(prompt, num_inference_steps=50).images[0]
-                st.image(image, caption=f"Generated for: '{prompt}'", use_container_width=True)
-            except Exception as e:
-                st.error(f"Failed to generate image: {e}")
-    else:
-        st.write("Click 'Generate' to create an X-ray.")
+    st.write("Image generation is temporarily disabled due to deployment issues. Displaying dataset image only.")
 
 st.markdown("---")
 st.write("Built with Streamlit & Stable Diffusion | Dataset: IU X-ray | Created by Varun Kasa | © 2025")
