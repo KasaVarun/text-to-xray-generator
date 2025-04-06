@@ -5,41 +5,15 @@ import pandas as pd
 import numpy as np
 from PIL import Image
 import gdown
-import zipfile
-import os
-import shutil
 
 st.set_page_config(page_title="Text-to-X-ray Generator", layout="wide")
 
-# Download model and dataset from Mega
-gdown.download("https://mega.nz/file/MlR22aCS#S6zcxByEsTmV-uTHWrlQw7zKv_5HYkVsMzouLiHK9JM", "fine_tuned_xray_model_full_fixed_v2.zip", quiet=False)
+# Download dataset from Mega
 gdown.download("https://mega.nz/file/J8hSxKKS#loXn1X-GcUhr5NSsgTTe5m7SrSw9Q9LbZV6KRX9U8W0", "preprocessed_data.pkl", quiet=False)
 
-# Unzip model to a temporary directory
-temp_dir = "temp_model_extract"
-with zipfile.ZipFile("fine_tuned_xray_model_full_fixed_v2.zip", 'r') as zip_ref:
-    zip_ref.extractall(temp_dir)
-
-# Move contents to the correct directory
-target_dir = "fine_tuned_xray_model_full_fixed_v2"
-os.makedirs(target_dir, exist_ok=True)
-
-# Check if there's a nested folder and move contents accordingly
-extracted_contents = os.listdir(temp_dir)
-if len(extracted_contents) == 1 and os.path.isdir(os.path.join(temp_dir, extracted_contents[0])):
-    nested_dir = os.path.join(temp_dir, extracted_contents[0])
-    for item in os.listdir(nested_dir):
-        shutil.move(os.path.join(nested_dir, item), target_dir)
-else:
-    for item in extracted_contents:
-        shutil.move(os.path.join(temp_dir, item), target_dir)
-
-# Clean up temporary directory
-shutil.rmtree(temp_dir)
-
-# Load model on CPU
+# Load model on CPU (use base Stable Diffusion model)
 pipe = StableDiffusionPipeline.from_pretrained(
-    "fine_tuned_xray_model_full_fixed_v2",
+    "stabilityai/stable-diffusion-2-1",
     torch_dtype=torch.float32,
     use_safetensors=True
 )
