@@ -1,12 +1,20 @@
-
 import streamlit as st
 from diffusers import StableDiffusionPipeline
 import torch
 import pandas as pd
 import numpy as np
 from PIL import Image
+import gdown
 
 st.set_page_config(page_title="Text-to-X-ray Generator", layout="wide")
+
+# Download model and dataset from Google Drive
+gdown.download("https://drive.google.com/uc?id=1GIOdS4MLcJfT6w8WGb_XcxaJwuodZSR_", "fine_tuned_xray_model_full_fixed_v2.zip", quiet=False)
+gdown.download("https://drive.google.com/uc?id=1E8nY8zIEJai9dg7Q13TrJMxoYqE6bA4c", "preprocessed_data.pkl", quiet=False)
+# Unzip model
+import zipfile
+with zipfile.ZipFile("fine_tuned_xray_model_full_fixed_v2.zip", 'r') as zip_ref:
+    zip_ref.extractall("fine_tuned_xray_model_full_fixed_v2")
 
 # Load model on CPU
 pipe = StableDiffusionPipeline.from_pretrained(
@@ -46,7 +54,7 @@ with col2:
     st.subheader("Generated X-ray")
     if st.button("Generate", key="generate"):
         with st.spinner("Generating..."):
-            image = pipe(prompt, num_inference_steps=10).images[0]
+            image = pipe(prompt, num_inference_steps=50).images[0]
         st.image(image, caption=f"Generated for: '{prompt}'", use_container_width=True)
     else:
         st.write("Click 'Generate' to create an X-ray.")
