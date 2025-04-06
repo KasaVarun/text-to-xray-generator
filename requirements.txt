@@ -1,8 +1,9 @@
 streamlit==1.44.1
-diffusers==0.32.2
-torch==2.6.0
+diffusers==0.30.3  # Downgrade to a stable version
+torch==2.4.1  # Use a more stable version for Python 3.12
 pandas==2.2.3
 numpy==2.0.2
 pillow==11.1.0
 gdown==5.2.0
-transformers==4.50.3
+transformers==4.44.2  # Downgrade to match diffusers
+huggingface_hub==0.25.2
