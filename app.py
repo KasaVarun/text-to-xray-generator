@@ -13,21 +13,33 @@ os.environ["HUGGINGFACE_TOKEN"] = "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"
 st.set_page_config(page_title="Text-to-X-ray Generator", layout="wide")
 
 # Download dataset from Mega
-gdown.download("https://mega.nz/file/J8hSxKKS#loXn1X-GcUhr5NSsgTTe5m7SrSw9Q9LbZV6KRX9U8W0", "preprocessed_data.pkl", quiet=False)
+try:
+    gdown.download("https://mega.nz/file/J8hSxKKS#loXn1X-GcUhr5NSsgTTe5m7SrSw9Q9LbZV6KRX9U8W0", "preprocessed_data.pkl", quiet=False)
+except Exception as e:
+    st.error(f"Failed to download dataset: {e}")
+    st.stop()
 
 # Load model on CPU (use base Stable Diffusion model)
-pipe = StableDiffusionPipeline.from_pretrained(
-    "stabilityai/stable-diffusion-2-1",
-    torch_dtype=torch.float32,
-    use_safetensors=True,
-    use_auth_token=os.environ["HUGGINGFACE_TOKEN"]
-)
-pipe.safety_checker = None
-st.write("Model loaded on CPU")
+try:
+    pipe = StableDiffusionPipeline.from_pretrained(
+        "stabilityai/stable-diffusion-2-1",
+        torch_dtype=torch.float32,
+        use_safetensors=True,
+        use_auth_token=os.environ["HUGGINGFACE_TOKEN"]
+    )
+    pipe.safety_checker = None
+    st.write("Model loaded on CPU")
+except Exception as e:
+    st.error(f"Failed to load model: {e}")
+    st.stop()
 
 # Load dataset
-df = pd.read_pickle('preprocessed_data.pkl')
-st.sidebar.write(f"Loaded {len(df)} image-text pairs from dataset.")
+try:
+    df = pd.read_pickle('preprocessed_data.pkl')
+    st.sidebar.write(f"Loaded {len(df)} image-text pairs from dataset.")
+except Exception as e:
+    st.error(f"Failed to load dataset: {e}")
+    st.stop()
 
 def numpy_to_pil(np_image):
     return Image.fromarray((np_image * 255).astype(np.uint8))
@@ -54,8 +66,11 @@ with col2:
     st.subheader("Generated X-ray")
     if st.button("Generate", key="generate"):
         with st.spinner("Generating..."):
-            image = pipe(prompt, num_inference_steps=50).images[0]
-        st.image(image, caption=f"Generated for: '{prompt}'", use_container_width=True)
+            try:
+                image = pipe(prompt, num_inference_steps=50).images[0]
+                st.image(image, caption=f"Generated for: '{prompt}'", use_container_width=True)
+            except Exception as e:
+                st.error(f"Failed to generate image: {e}")
     else:
         st.write("Click 'Generate' to create an X-ray.")
 
