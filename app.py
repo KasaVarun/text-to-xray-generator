@@ -11,7 +11,7 @@ import shutil
 
 st.set_page_config(page_title="Text-to-X-ray Generator", layout="wide")
 
-# Download model and dataset from Google Drive
+# Download model and dataset from Mega
 gdown.download("https://mega.nz/file/MlR22aCS#S6zcxByEsTmV-uTHWrlQw7zKv_5HYkVsMzouLiHK9JM", "fine_tuned_xray_model_full_fixed_v2.zip", quiet=False)
 gdown.download("https://mega.nz/file/J8hSxKKS#loXn1X-GcUhr5NSsgTTe5m7SrSw9Q9LbZV6KRX9U8W0", "preprocessed_data.pkl", quiet=False)
 
