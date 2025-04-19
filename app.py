@@ -1,92 +1,59 @@
 import streamlit as st
-from diffusers import StableDiffusionPipeline
-import torch
 import pandas as pd
 import numpy as np
 from PIL import Image
-import gdown
-import zipfile
+from diffusers import StableDiffusionPipeline
+import torch
 import os
-import shutil
 
+# Set Streamlit page configuration
 st.set_page_config(page_title="Text-to-X-ray Generator", layout="wide")
 
-# Download model and dataset from Mega
+# Load dataset from local path
 try:
-    gdown.download("https://mega.nz/file/1sIQhJDA#6M1GkSa9roBG7KXJMToyBVJXWqLqqMGpZQ69lO5xCHI", "fine_tuned_xray_model_full_fixed_v2.zip", quiet=False)
-except Exception as e:
-    st.error(f"Failed to download model: {e}")
-    st.stop()
-
-try:
-    gdown.download("https://mega.nz/file/J8hSxKKS#loXn1X-GcUhr5NSsgTTe5m7SrSw9Q9LbZV6KRX9U8W0", "preprocessed_data.pkl", quiet=False)
-except Exception as e:
-    st.error(f"Failed to download dataset: {e}")
-    st.stop()
-
-# Unzip model to a temporary directory
-try:
-    temp_dir = "temp_model_extract"
-    with zipfile.ZipFile("fine_tuned_xray_model_full_fixed_v2.zip", 'r') as zip_ref:
-        zip_ref.extractall(temp_dir)
-
-    # Move contents to the correct directory
-    target_dir = "fine_tuned_xray_model_full_fixed_v2"
-    os.makedirs(target_dir, exist_ok=True)
-
-    # Check if there's a nested folder and move contents accordingly
-    extracted_contents = os.listdir(temp_dir)
-    if len(extracted_contents) == 1 and os.path.isdir(os.path.join(temp_dir, extracted_contents[0])):
-        nested_dir = os.path.join(temp_dir, extracted_contents[0])
-        for item in os.listdir(nested_dir):
-            shutil.move(os.path.join(nested_dir, item), target_dir)
-    else:
-        for item in extracted_contents:
-            shutil.move(os.path.join(temp_dir, item), target_dir)
-
-    # Clean up temporary directory
-    shutil.rmtree(temp_dir)
-except Exception as e:
-    st.error(f"Failed to unzip model: {e}")
-    st.stop()
-
-# Load model on CPU
-try:
-    pipe = StableDiffusionPipeline.from_pretrained(
-        "fine_tuned_xray_model_full_fixed_v2",
-        torch_dtype=torch.float32,
-        use_safetensors=True
-    )
-    pipe.safety_checker = None
-    st.write("Model loaded on CPU")
-except Exception as e:
-    st.error(f"Failed to load model: {e}")
-    st.stop()
-
-# Load dataset
-try:
-    df = pd.read_pickle('preprocessed_data.pkl')
+    # Use the full path to your preprocessed_data.pkl file
+    pickle_path = "C:/Users/varun2002/Downloads/text-to-xray-generator/preprocessed_data.pkl"
+    df = pd.read_pickle(pickle_path)
     st.sidebar.write(f"Loaded {len(df)} image-text pairs from dataset.")
 except Exception as e:
     st.error(f"Failed to load dataset: {e}")
     st.stop()
 
+# Load pre-trained model on CPU
+try:
+    pipe = StableDiffusionPipeline.from_pretrained(
+        "stabilityai/stable-diffusion-2-1",  # Updated model
+        torch_dtype=torch.float32,  # Keep CPU compatibility
+        use_safetensors=True
+    )
+    pipe.safety_checker = None
+    st.write("Pre-trained model (stabilityai/stable-diffusion-2-1) loaded on CPU.")
+except Exception as e:
+    st.error(f"Failed to load model: {e}")
+    pipe = None
+
 def numpy_to_pil(np_image):
     return Image.fromarray((np_image * 255).astype(np.uint8))
 
+# Sidebar for prompt selection
 st.sidebar.header("Prompt Selection")
 prompt_options = df['text'].tolist()
 selected_prompt = st.sidebar.selectbox("Choose a dataset prompt", prompt_options)
 custom_prompt = st.sidebar.text_input("Or enter custom prompt", selected_prompt)
-prompt = custom_prompt if custom_prompt != selected_prompt else selected_prompt
+prompt = custom_prompt if custom_prompt != custom_prompt else selected_prompt
 
+# Enhance the prompt with additional details for better chest X-ray generation
+if prompt:
+    prompt = f"{prompt} in grayscale, anatomical structures visible, clear lung fields, realistic X-ray style, black and white, high contrast, medical imaging, chest X-ray with visible heart, lungs, ribs, and diaphragm"
+
+# Main app layout
 st.title("Text-to-X-ray Generator")
-st.markdown("Generate synthetic X-rays from text using a fine-tuned Stable Diffusion model.")
+st.markdown("Generate synthetic X-rays from text using a pre-trained Stable Diffusion 2.1 model.")
 
 col1, col2 = st.columns(2)
 with col1:
     st.subheader("Real X-ray")
-    real_image_row = df[df['text'] == prompt]
+    real_image_row = df[df['text'] == selected_prompt]
     if not real_image_row.empty:
         real_image = numpy_to_pil(real_image_row.iloc[0]['image'])
         st.image(real_image, caption="From Dataset", use_container_width=True)
@@ -94,15 +61,26 @@ with col1:
         st.write("No matching real image available.")
 with col2:
     st.subheader("Generated X-ray")
-    if st.button("Generate", key="generate"):
-        with st.spinner("Generating..."):
-            try:
-                image = pipe(prompt, num_inference_steps=10).images[0]
-                st.image(image, caption=f"Generated for: '{prompt}'", use_container_width=True)
-            except Exception as e:
-                st.error(f"Failed to generate image: {e}")
+    if pipe is None:
+        st.write("Image generation is disabled due to model loading failure.")
     else:
-        st.write("Click 'Generate' to create an X-ray.")
+        st.write("Note: Using a pre-trained model (stabilityai/stable-diffusion-2-1); generated images may not be perfectly accurate X-rays.")
+        if st.button("Generate", key="generate"):
+            with st.spinner("Generating... (This may take a while on CPU)"):
+                try:
+                    # Generate image with specified resolution to match real image (512x512)
+                    image = pipe(
+                        prompt,
+                        num_inference_steps=10,
+                        height=512,
+                        width=512
+                    ).images[0]
+                    st.image(image, caption=f"Generated for: '{prompt}'", use_container_width=True)
+                except Exception as e:
+                    st.error(f"Failed to generate image: {e}")
+        else:
+            st.write("Click 'Generate' to create an image.")
 
+# Footer
 st.markdown("---")
-st.write("Built with Streamlit & Stable Diffusion | Dataset: IU X-ray | Created by Varun Kasa | © 2025")
+st.write("Built with Streamlit & Stable Diffusion 2.1 | Dataset: IU X-ray | Created by Varun Kasa | © 2025")
