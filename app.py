@@ -17,7 +17,7 @@ st.set_page_config(page_title="Text-to-X-ray Generator", layout="wide")
 # Function to download the dataset if not present
 def download_dataset():
     dataset_path = "preprocessed_data_subset.pkl"
-    dataset_url = "https://drive.google.com/file/d/1VgYUzoYNS5FMC4mjIVA8EyIiUZf5pJFN/view?usp=sharing"  # Replace with your Google Drive direct download URL for preprocessed_data_subset.pkl
+    dataset_url = "https://drive.google.com/uc?export=download&id=1zka28ItqEyZ1_vgvA5MX7__7RR3KG2Vh"  # Direct download URL for preprocessed_data_subset.pkl
 
     if not os.path.exists(dataset_path):
         st.info("Downloading dataset (subset)...")
