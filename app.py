@@ -5,15 +5,32 @@ from PIL import Image
 from diffusers import StableDiffusionPipeline
 import torch
 import os
+import requests
 
 # Set Streamlit page configuration
 st.set_page_config(page_title="Text-to-X-ray Generator", layout="wide")
 
-# Load dataset from local path
+# Function to download the dataset if not present
+def download_dataset():
+    dataset_path = "preprocessed_data.pkl"
+    dataset_url = "https://drive.google.com/uc?export=download&id=1VgYUzoYNS5FMC4mjIVA8EyIiUZf5pJFN"  # Updated with your Google Drive URL
+
+    if not os.path.exists(dataset_path):
+        st.write("Downloading dataset...")
+        try:
+            response = requests.get(dataset_url)
+            response.raise_for_status()  # Raise an exception for HTTP errors
+            with open(dataset_path, "wb") as f:
+                f.write(response.content)
+            st.write("Dataset downloaded successfully.")
+        except Exception as e:
+            st.error(f"Failed to download dataset: {e}")
+            st.stop()
+
+# Load dataset from local path or download it
 try:
-    # Use the full path to your preprocessed_data.pkl file
-    pickle_path = "C:/Users/varun2002/Downloads/text-to-xray-generator/preprocessed_data.pkl"
-    df = pd.read_pickle(pickle_path)
+    download_dataset()
+    df = pd.read_pickle("preprocessed_data.pkl")
     st.sidebar.write(f"Loaded {len(df)} image-text pairs from dataset.")
 except Exception as e:
     st.error(f"Failed to load dataset: {e}")
