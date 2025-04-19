@@ -1,168 +1,97 @@
+## Instructions to Run the Code
 
-
-**Generate synthetic chest X-rays from text descriptions using a fine-tuned Stable Diffusion model.**
-
-This project fine-tunes the Stable Diffusion model to generate synthetic chest X-rays based on textual descriptions. By leveraging the IU X-ray dataset (NLMCXR), the project addresses data scarcity in medical imaging and supports medical education, research, and AI model training. The application is built using Streamlit for an interactive user experience.
-
----
-
-## Table of Contents
-
-- [Project Overview](#project-overview)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Dataset](#dataset)
-- [Model Fine-tuning](#model-fine-tuning)
-- [Results](#results)
-- [Contributing](#contributing)
-- [License](#license)
-
----
-
-## Project Overview
-
-The **Text-to-X-ray Generator** is a deep learning project that generates synthetic chest X-rays from text descriptions using a fine-tuned Stable Diffusion model. The project aims to:
-
-- Address the scarcity of annotated medical imaging datasets.
-- Support medical education and research by generating realistic X-rays for various conditions.
-- Provide a tool for augmenting datasets used in training AI diagnostic models.
-
-The application allows users to select prompts from the dataset or input custom text to generate synthetic X-rays, displaying the real X-ray alongside the generated one for comparison.
-
----
-
-## Installation
+To run the Text-to-X-ray Generator, follow these detailed steps for installation, dataset setup, and launching the application. These instructions assume you have basic familiarity with Python and command-line tools.
 
 ### Prerequisites
 
+Before starting, ensure you have the following installed:
 - **Python**: Version 3.8 or higher.
-- **Git**: To clone the repository.
+- **Git**: For cloning the repository.
+- **Virtual Environment** (optional but recommended): To isolate project dependencies.
 
-### Steps
+### Step 1: Installation
 
-1. **Clone the repository**:
+1. **Clone the Repository**  
+   Open a terminal and run the following command to download the project files:
    ```bash
    git clone https://github.com/KasaVarun/text-to-xray-generator.git
    cd text-to-xray-generator
    ```
 
-2. **Install dependencies**:
-   The project requires several Python libraries. Install them using the provided `requirements.txt` file:
+2. **Set Up a Virtual Environment** (Recommended)  
+   This step keeps the project’s dependencies separate from your system’s Python environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. **Install Dependencies**  
+   Install the required Python libraries using the provided `requirements.txt` file:
    ```bash
    pip install -r requirements.txt
    ```
-   The key libraries include:
-   - `streamlit`: For the web application.
-   - `pandas`, `numpy`: For data manipulation.
+   Key libraries installed include:
+   - `streamlit`: For the interactive web application.
+   - `pandas`, `numpy`: For data handling.
    - `pillow`: For image processing.
-   - `torch`, `diffusers`, `transformers`: For model loading and inference.
+   - `torch`, `diffusers`, `transformers`: For running the Stable Diffusion model.
 
-3. **Download the dataset**:
-   - The project uses the IU X-ray dataset (NLMCXR). Download the dataset from [OpenI](https://openi.nlm.nih.gov/imgs/collections/NLMCXR_reports.tgz) and [images](https://openi.nlm.nih.gov/imgs/collections/NLMCXR_png.tgz).
-   - Extract the dataset and place it in the project directory as per the preprocessing script.
+### Step 2: Dataset Setup
 
-4. **Fine-tuned model**:
-   - The fine-tuned model (`fine_tuned_xray_model_full_fixed_v2`) is included in the repository. Ensure the model directory is present in the project folder.
+The project uses the **IU X-ray dataset (NLMCXR)**, which includes chest X-ray images and their corresponding text reports. Follow these steps to prepare the dataset:
 
----
+1. **Download the Dataset**  
+   - **Images**: Download from [NLMCXR_png.tgz](https://openi.nlm.nih.gov/imgs/collections/NLMCXR_png.tgz).  
+   - **Reports**: Download from [NLMCXR_reports.tgz](https://openi.nlm.nih.gov/imgs/collections/NLMCXR_reports.tgz).
 
-## Usage
+2. **Extract the Files**  
+   - Unzip the images into a folder named `NLMCXR_png` in the project directory.  
+   - Unzip the reports into a folder named `NLMCXR_reports` in the project directory.
 
-### Running the Application
-
-1. **Navigate to the project directory**:
+3. **Preprocess the Dataset**  
+   Run the preprocessing script to prepare the data for the model:
    ```bash
-   cd text-to-xray-generator
+   python preprocess_data.py
+   ```
+   This script will:
+   - Parse the XML reports to extract image-text pairs.
+   - Process the images (resize, convert to grayscale, normalize).
+   - Truncate text prompts to 75 tokens.
+   - Save the processed data as `preprocessed_data.pkl` in the project directory.
+
+### Step 3: Running the Application
+
+Once the setup is complete, you can launch the Streamlit application to generate synthetic X-rays.
+
+1. **Ensure the Fine-Tuned Model is Available**  
+   The application requires a fine-tuned Stable Diffusion model (`fine_tuned_xray_model_full_fixed_v2`). If it’s not already in the project directory, generate it by running:
+   ```bash
+   python fine_tune_model.py
    ```
 
-2. **Run the Streamlit app**:
+2. **Launch the Streamlit App**  
+   Start the application with the following command:
    ```bash
    streamlit run app.py
    ```
-   - The app will open in your browser at `http://localhost:8501`.
-
-3. **Using the App**:
-   - **Prompt Selection**: Choose a prompt from the dataset or enter a custom description.
-   - **Generate X-ray**: Click the "Generate" button to create a synthetic X-ray using the fine-tuned model.
-   - **Comparison**: View the real X-ray and the generated X-ray side by side.
-
-### Example
-
-- **Prompt**: "Frontal chest X-ray showing cardiomegaly"
-- **Output**: A synthetic X-ray image generated by the fine-tuned model, displayed alongside the real X-ray from the dataset.
-
----
-
-## Dataset
-
-The project uses the **IU X-ray dataset (NLMCXR)**, which contains:
+   - The app will launch in your default web browser at `http://localhost:8501`.![Screenshot 2025-04-19 054728](https://github.com/user-attachments/assets/e82c29e6-9a92-48a5-9a46-50897be17512)
+![Screenshot 2025-04-19 064754](https://github.com/user-attachments/assets/3d7a0ad8-4133-4b89-90ad-7d495a76df8e)
 
 
-X-rays and corresponding radiology reports.
-- Images are preprocessed: resized to 256x256, converted to grayscale, and normalized to [0, 1].
-- Text prompts are truncated to 75 tokens using the CLIP tokenizer.
+### Troubleshooting
 
-For more details on dataset preprocessing, refer to the [data preparation script](link-to-script).
+If you encounter issues, check the following:
+- **Model Not Found**: Verify that the `fine_tuned_xray_model_full_fixed_v2` directory exists in the project folder. Run `python fine_tune_model.py` if it’s missing.
+- **Dataset Not Found**: Ensure `preprocessed_data.pkl` is present. Re-run `python preprocess_data.py` if necessary.
+- **Dependency Errors**: Confirm all libraries installed correctly by re-running `pip install -r requirements.txt`.
 
 ---
 
-## Model Fine-tuning
+## How to Use the Application
 
-### Base Model
-
-- **Stable Diffusion v1.4** (`CompVis/stable-diffusion-v1-4`): A latent diffusion model for text-to-image generation.
-
-### Fine-tuning Approach
-
-- **Technique**: Low-Rank Adaptation (LoRA) for efficient fine-tuning.
-- **LoRA Parameters**: Rank=16, alpha=32, targeting UNet attention modules (`to_q`, `to_v`).
-- **Training**: 4 epochs on 7,470 image-text pairs from the IU X-ray dataset.
-- **Loss Function**: Placeholder loss (suboptimal; future improvements planned).
-
-The fine-tuned model is saved as `fine_tuned_xray_model_full_fixed_v2` and used in the Streamlit app.
-
-For more details, see the [fine-tuning notebook](link-to-notebook).
+Once the app is running:
+- **Select a Prompt**: Choose a text description from the dataset or enter your own in the sidebar.
+- **Generate an X-ray**: Click the "Generate" button to create a synthetic chest X-ray.
+- **View Results**: The app displays the generated X-ray alongside the real one for comparison.
 
 ---
-
-## Results
-
-### Quantitative Results
-
-- **SSIM Score**: The fine-tuned model achieved an average SSIM of **0.1989** on the test set, indicating poor structural similarity.
-- **Inference Time**: ~30 seconds per image on CPU with 5 inference steps.
-
-### Qualitative Results
-
-- The fine-tuned model struggled with anatomical accuracy (e.g., unclear lung fields).
-- The pretrained model (`stabilityai/stable-diffusion-2-1`) produced visually better X-rays but still lacks clinical precision.
-
-**Figure 1**: *Comparison of X-rays generated by the fine-tuned model and pretrained model.*
-
-- 7,470 image-text pairs of chest ![Screenshot 2025-04-19 064754](https://github.com/user-attachments/assets/4572cf50-ddac-4dcd-9884-71b4ff92a164)![Screenshot 2025-04-19 054728](https://github.com/user-attachments/assets/54ff6b26-778d-4348-8554-283289e0da7c)
-
-
----
-
-## Contributing
-
-We welcome contributions to improve the Text-to-X-ray Generator. To contribute:
-
-1. **Fork the repository**.
-2. **Create a new branch** for your feature or bugfix.
-3. **Submit a pull request** with a clear description of your changes.
-
-For bug reports or feature requests, please open an issue on the [GitHub repository](https://github.com/KasaVarun/text-to-xray-generator/issues).
-
----
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
----
-
-**Built with Streamlit & Stable Diffusion | Dataset: IU X-ray | Created by Varun Kasa | © 2025**
-
----
-
