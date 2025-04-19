@@ -17,7 +17,7 @@ st.set_page_config(page_title="Text-to-X-ray Generator", layout="wide")
 # Function to download the dataset if not present
 def download_dataset():
     dataset_path = "preprocessed_data_subset.pkl"
-    dataset_url = "https://drive.google.com/uc?export=download&id=1zka28ItqEyZ1_vgvA5MX7__7RR3KG2Vh"  # Direct download URL for preprocessed_data_subset.pkl
+    dataset_url = "https://drive.google.com/uc?export=download&id=1XM-6yIl2yc9qT5H8rS2NPa-hkB-ybodC"  # Updated direct download URL for preprocessed_data_subset.pkl
 
     if not os.path.exists(dataset_path):
         st.info("Downloading dataset (subset)...")
@@ -117,7 +117,7 @@ with col1:
     real_image_row = df[df['text'] == selected_prompt]
     if not real_image_row.empty:
         real_image = numpy_to_pil(real_image_row.iloc[0]['image'])
-        st.image(real_image, caption="From Dataset", use_container_width=True)
+        st.image(real_image, caption="From Dataset", use_column_width=True)
     else:
         st.write("No matching real image available.")
 with col2:
