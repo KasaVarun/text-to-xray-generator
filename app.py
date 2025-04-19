@@ -2,6 +2,10 @@ import streamlit as st
 import os
 import requests
 import logging
+import numpy as np
+import pandas as pd
+from PIL import Image
+import torch
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -55,9 +59,7 @@ def download_dataset():
 # Load dataset from local path or download it
 try:
     download_dataset()
-    import numpy as np
     logger.info(f"Numpy version: {np.__version__}")
-    import pandas as pd
     logger.info(f"Pandas version: {pd.__version__}")
     df = pd.read_pickle("preprocessed_data_subset.pkl")
     st.sidebar.write(f"Loaded {len(df)} image-text pairs from dataset.")
@@ -71,27 +73,25 @@ except Exception as e:
     logger.error(f"Failed to load dataset: {str(e)}")
     st.stop()
 
-# Temporarily disable model loading and inference to isolate the issue
-st.write("Model loading and inference are temporarily disabled to isolate dataset loading issues.")
-# try:
-#     logger.info("Loading Stable Diffusion model...")
-#     from diffusers import StableDiffusionPipeline
-#     pipe = StableDiffusionPipeline.from_pretrained(
-#         "stabilityai/stable-diffusion-2-1",
-#         torch_dtype=torch.float32,
-#         use_safetensors=True
-#     )
-#     pipe.safety_checker = None
-#     st.write("Pre-trained model (stabilityai/stable-diffusion-2-1) loaded on CPU.")
-#     logger.info("Model loaded successfully.")
-# except ImportError as e:
-#     st.error("Failed to import StableDiffusionPipeline. Ensure 'diffusers' is installed correctly.")
-#     logger.error(f"ImportError: {str(e)}")
-#     st.stop()
-# except Exception as e:
-#     st.error(f"Failed to load model: {str(e)}")
-#     logger.error(f"Failed to load model: {str(e)}")
-#     st.stop()
+try:
+    logger.info("Loading Stable Diffusion model...")
+    from diffusers import StableDiffusionPipeline
+    pipe = StableDiffusionPipeline.from_pretrained(
+        "stabilityai/stable-diffusion-2-1",
+        torch_dtype=torch.float32,
+        use_safetensors=True
+    )
+    pipe.safety_checker = None
+    st.write("Pre-trained model (stabilityai/stable-diffusion-2-1) loaded on CPU.")
+    logger.info("Model loaded successfully.")
+except ImportError as e:
+    st.error("Failed to import StableDiffusionPipeline. Ensure 'diffusers' is installed correctly.")
+    logger.error(f"ImportError: {str(e)}")
+    st.stop()
+except Exception as e:
+    st.error(f"Failed to load model: {str(e)}")
+    logger.error(f"Failed to load model: {str(e)}")
+    st.stop()
 
 def numpy_to_pil(np_image):
     return Image.fromarray((np_image * 255).astype(np.uint8))
@@ -122,27 +122,27 @@ with col1:
         st.write("No matching real image available.")
 with col2:
     st.subheader("Generated X-ray")
-    st.write("Image generation is disabled until dataset loading is resolved.")
-    # if pipe is None:
-    #     st.write("Image generation is disabled due to model loading failure.")
-    # else:
-    #     st.write("Note: Using a pre-trained model (stabilityai/stable-diffusion-2-1); generated images may not be perfectly accurate X-rays.")
-    #     if st.button("Generate", key="generate"):
-    #         with st.spinner("Generating... (This may take a while on CPU)"):
-    #             try:
-    #                 image = pipe(
-    #                     prompt,
-    #                     num_inference_steps=5,
-    #                     height=512,
-    #                     width=512
-    #                 ).images[0]
-    #                 st.image(image, caption=f"Generated for: '{prompt}'", use_container_width=True)
-    #                 logger.info(f"Generated image for prompt: {prompt}")
-    #             except Exception as e:
-    #                 st.error(f"Failed to generate image: {str(e)}")
-    #                 logger.error(f"Failed to generate image: {str(e)}")
-    #     else:
-    #         st.write("Click 'Generate' to create an image.")
+    if pipe is None:
+        st.write("Image generation is disabled due to model loading failure.")
+    else:
+        st.write("Note: Using a pre-trained model (stabilityai/stable-diffusion-2-1); generated images may not be perfectly accurate X-rays.")
+        if st.button("Generate", key="generate"):
+            with st.spinner("Generating... (This may take a while on CPU)"):
+                try:
+                    # Generate image with specified resolution to match real image (512x512)
+                    image = pipe(
+                        prompt,
+                        num_inference_steps=5,  # Reduced for faster generation
+                        height=512,
+                        width=512
+                    ).images[0]
+                    st.image(image, caption=f"Generated for: '{prompt}'", use_column_width=True)
+                    logger.info(f"Generated image for prompt: {prompt}")
+                except Exception as e:
+                    st.error(f"Failed to generate image: {str(e)}")
+                    logger.error(f"Failed to generate image: {str(e)}")
+        else:
+            st.write("Click 'Generate' to create an image.")
 
 # Footer
 st.markdown("---")
