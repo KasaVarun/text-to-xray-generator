@@ -97,7 +97,9 @@ The application allows users to select prompts from the dataset or input custom 
 
 The project uses the **IU X-ray dataset (NLMCXR)**, which contains:
 
-- 7,470 image-text pairs of chest X-rays and corresponding radiology reports.
+- 7,470 image-text pairs of chest ![Screenshot 2025-04-19 064754](https://github.com/user-attachments/assets/4572cf50-ddac-4dcd-9884-71b4ff92a164)
+![Screenshot 2025-04-19 064754](https://github.com/user-attachments/assets/4e5c782d-1683-41df-a1c7-5253a9ea145d)
+X-rays and corresponding radiology reports.
 - Images are preprocessed: resized to 256x256, converted to grayscale, and normalized to [0, 1].
 - Text prompts are truncated to 75 tokens using the CLIP tokenizer.
 
