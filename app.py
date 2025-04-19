@@ -23,8 +23,28 @@ def download_dataset():
         st.info("Downloading dataset (subset)...")
         logger.info(f"Downloading dataset from {dataset_url}")
         try:
-            response = requests.get(dataset_url, stream=True)
-            response.raise_for_status()  # Raise an exception for HTTP errors
+            # First request to get the confirmation token
+            session = requests.Session()
+            response = session.get(dataset_url, stream=True)
+            response.raise_for_status()
+
+            # Check if the response is an HTML page (indicating a confirmation is needed)
+            content_type = response.headers.get('Content-Type', '')
+            if 'text/html' in content_type:
+                # Extract the confirmation token from the HTML
+                html_content = response.text
+                token_start = html_content.find('confirm=') + 8
+                token_end = html_content.find('&', token_start)
+                if token_end == -1:
+                    token_end = len(html_content)
+                confirm_token = html_content[token_start:token_end]
+
+                # Make a second request with the confirmation token
+                download_url = f"{dataset_url}&confirm={confirm_token}"
+                response = session.get(download_url, stream=True)
+                response.raise_for_status()
+
+            # Download the file in chunks
             with open(dataset_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
