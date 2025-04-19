@@ -1,8 +1,4 @@
-Below is the converted content from the thinking trace, formatted with headings and Markdown for clarity and readability, addressing the user's query to "convert this with headings and all."
 
----
-
-# Text-to-X-ray Generator
 
 **Generate synthetic chest X-rays from text descriptions using a fine-tuned Stable Diffusion model.**
 
